@@ -1,4 +1,7 @@
+import { PrismaClient, Prisma } from '@prisma/client';
+import { DefaultArgs } from '@prisma/client/runtime/library';
 import { prisma } from '../lib/prisma';
+import { deleteUserFromGroup } from '../utils';
 
 export const getUsers = async (limit: number, offset: number) => {
 	const users = await prisma.user.findMany({
@@ -20,4 +23,21 @@ export const getUsers = async (limit: number, offset: number) => {
 		})),
 		total,
 	};
+};
+
+export const removeUserFromGroup = async (userId: number, groupId: number) => {
+	return await prisma.$transaction(async (transaction) => {
+		await deleteUserFromGroup(userId, groupId, transaction);
+
+		const remaining = await transaction.userGroup.count({ where: { group_id: groupId } });
+
+		if (remaining === 0) {
+			await transaction.group.update({
+				where: { id: groupId },
+				data: { status: 'empty' },
+			});
+		}
+
+		return { removed: true, updatedGroup: remaining === 0 };
+	});
 };
