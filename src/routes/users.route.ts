@@ -1,6 +1,8 @@
 import { Router, Request, Response } from 'express';
-import { getUsers, removeUserFromGroup } from '../services/user.service';
+import { getUsers, removeUserFromGroup, updateUserStatuses } from '../services/user.service';
 import { BAD_REQUEST, INTERNAL_SERVER_ERROR, NOT_FOUND } from '../statusCodes';
+import { validateUserStatuses } from '../utils';
+import { UserStatusUpdateCommand } from '../types';
 
 const router = Router();
 
@@ -43,6 +45,24 @@ router.delete('/:userId/groups/:groupId', async (req: Request, res: Response) =>
 		}
 
 		res.status(INTERNAL_SERVER_ERROR).json({ error: 'Internal server error' });
+	}
+});
+
+router.put('/statuses', async (req: Request, res: Response) => {
+	const updates = req.body as { id: number; status: string }[];
+
+	validateUserStatuses(updates, res);
+
+	try {
+		const result = await updateUserStatuses(updates as UserStatusUpdateCommand[]);
+
+		res.json({
+			updated: result.length,
+			userIds: result.map(({ id }) => id),
+		});
+	} catch (error: any) {
+		console.error(error);
+		res.status(INTERNAL_SERVER_ERROR).json({ error: 'Failed to update users' });
 	}
 });
 

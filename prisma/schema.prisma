@@ -7,19 +7,31 @@ generator client {
   provider = "prisma-client-js"
 }
 
+enum UserStatus {
+  pending
+  active
+  blocked
+}
+
 model User {
   id        Int       @id @default(autoincrement())
   name      String
   email     String    @unique
   created_at DateTime  @default(now())
+  status    UserStatus  @default(pending)
   groups    UserGroup[]
   @@map("users")
+}
+
+enum GroupStatus {
+  empty
+  notEmpty
 }
 
 model Group {
   id        Int       @id @default(autoincrement())
   name      String
-  status    String
+  status    GroupStatus  @default(empty)
   created_at DateTime  @default(now())
   users     UserGroup[]
   @@map("groups")
