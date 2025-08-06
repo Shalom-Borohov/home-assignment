@@ -1,5 +1,3 @@
-import { PrismaClient, Prisma } from '@prisma/client';
-import { DefaultArgs } from '@prisma/client/runtime/library';
 import { prisma } from '../lib/prisma';
 import { deleteUserFromGroup } from '../utils';
 
@@ -34,7 +32,7 @@ export const removeUserFromGroup = async (userId: number, groupId: number) => {
 		if (remaining === 0) {
 			await transaction.group.update({
 				where: { id: groupId },
-				data: { status: 'empty' },
+				data: { status: 'Empty' },
 			});
 		}
 
